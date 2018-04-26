@@ -17,7 +17,7 @@ def genTrainingData(settings,params):
     foreground_names = os.listdir(settings.path2foreground)
     offsets = ()
     for i in range(params.num_training_images):
-        backgroud_image = cv2.imread(settings.path2background + '/' 
+        backgroud_image = cv2.imread(settings.path2background + '/'
                                      + background_names[np.random.randint(low=0,high=len(background_names)-1)])
         offsets += ([],)
         if params.max_objects == 1:

@@ -10,16 +10,19 @@ class settings:
     def __init__(self):
         self.path2data = '../data'
         self.path2results = '../results'
-        self.path2foreground = '../data/foreground'
-        self.path2background = '../data/background'
-        self.path2dev = '../data/dev'
-    
+        self.path2foreground = './Foreground'
+        self.path2background = './Background'
+        self.path2dev = './dev'
+        self.GT_annotations='./annotationsTrain.txt'
+        self.busOriginalDir='./busesTrain'
 class params:
     # parameters to be used throughout the project
     def __init__(self):
         self.seed = 1
         self.num_training_images = 10000
         self.max_objects = 5
+        self.image_width=2736
+        self.image_height=3648
 
     
 def load():
