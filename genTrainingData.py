@@ -11,7 +11,7 @@ import numpy as np
 from PIL import Image
 import os
 import settings_params
-
+abc = 1
 def genTrainingData(settings,params):
     background_names = os.listdir(settings.path2background)
     foreground_names = os.listdir(settings.path2foreground)
