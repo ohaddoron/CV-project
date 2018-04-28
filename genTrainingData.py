@@ -15,11 +15,12 @@ abc = 1
 def genTrainingData(settings,params):
     background_names = os.listdir(settings.path2background)
     foreground_names = os.listdir(settings.path2foreground)
-    offsets = ()
+    # offsets = ()
     for i in range(params.num_training_images):
         backgroud_image = cv2.imread(settings.path2background + '/'
                                      + background_names[np.random.randint(low=0,high=len(background_names)-1)])
-        offsets += ([],)
+        # offsets += ([],)
+        offsets=[]
         if params.max_objects == 1:
             num_objects = 1
         else:
@@ -30,8 +31,8 @@ def genTrainingData(settings,params):
             backgroud_image,cur_offset = blend_images(foreground_image,backgroud_image)
             
             offsets[-1].append(cur_offset + (foreground_image.shape[:2]))
-        cv2.imwrite(settings.path2dev + '/' + str(i) + '.jpg',backgroud_image)
-    np.save(settings.path2dev +'/' + 'annotations.npy',offsets)
+        cv2.imwrite(settings.path2dev + '/' + str(i) + '.JPG',backgroud_image)
+    # np.save(settings.path2dev +'/' + 'annotations.npy',offsets)
         
 
 
@@ -53,7 +54,7 @@ def blend_images(foreground,background):
     x_offset = np.random.randint(low=0,high=background.shape[1]-foreground.shape[1])
     y_offset = np.random.randint(low=0,high=background.shape[0]-foreground.shape[0])
     
-    offset = (x_offset,y_offset)
+    offset = [x_offset,y_offset,foreground.shape[1] ]
     MASK = 255 * cv2.morphologyEx(alpha, cv2.MORPH_CLOSE, kernel).astype('uint8')
     
     
@@ -68,6 +69,11 @@ def blend_images(foreground,background):
     
     return np.array(background),offset
     
+f=open("newANN.txt", "a+")
+f.write("Appended line %d\r\n")
+
+
+
 
 settings,params = settings_params.load()
 offsets = genTrainingData(settings,params)

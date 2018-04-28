@@ -10,7 +10,7 @@ class settings:
     def __init__(self):
         self.path2data = '../data'
         self.path2results = '../results'
-        self.path2foreground = './Foreground'
+        self.path2foreground = './busesRect'
         self.path2background = './Background'
         self.path2dev = './dev'
         self.GT_annotations='./annotationsTrain.txt'
