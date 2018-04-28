@@ -35,11 +35,21 @@ def create_bus_rect_img(settings):
             cv2.imwrite('busesRect/'+name.replace('.JPG','_' + str(i) + '.jpg'),temp)
 
 
-def resize_background(setting,params):
+def resize_background(settings,params):
     background_names = os.listdir(settings.path2background)
-    backgroud_image = cv2.imread(settings.path2background + '/'
-                                     + background_names[np.random.randint(low=0,high=len(background_names)-1)])
-    backgroud_image_re = cv2.resize(backgroud_image, (params.image_height, params.image_width))
+    for background_image in background_names:
+        image = cv2.imread(settings.path2background + '/'
+                                     + background_image)
+        image_res = cv2.resize(image, (params.image_height, params.image_width))
+        cv2.imwrite(settings.path2background + '/resized/' + background_image,image_res)
+
+def crop_background(settings,params):
+    background_names = os.listdir(settings.path2background + '/orig')
+    for background_image in background_names:
+        image = cv2.imread(settings.path2background + '/orig/'
+                                     + background_image)
+        image_res = cv2.resize(image, (params.image_height, params.image_width))
+        cv2.imwrite(settings.path2background + '/resized/' + background_image,image_res)
 
 
 settings,params=settings_params.load()
