@@ -22,10 +22,18 @@ def load_labels(settings):
                 loc = [int(i) for i in loc.replace('[','').replace(']','').split(',')]
                 locs[imName].append(loc)
     return locs
+def load_colors(settings):
+    # save colors of buses redt into dictionary
+    colors = {}
+    with open(settings.foreground_colors, 'r') as colorFileGT:
+         for line in colorFileGT:
+            imName = line.split(':')[0]
+            color = line.split(':')[1].replace('\n', '')
+            colors[imName] = color
+    return colors
 
 def create_bus_rect_img(settings):
     locs=load_labels(settings)
-
     for name in locs:
         # bus = os.path.join(settings.busOriginalDir, name)
         # img=cv2.imread(bus)
@@ -42,6 +50,17 @@ def resize_background(settings,params):
                                      + background_image)
         image_res = cv2.resize(image, (params.image_height, params.image_width))
         cv2.imwrite(settings.path2background + '/resized/' + background_image,image_res)
+def mirror_images(settings, params):
+    locs=load_labels(settings)
+    for name in locs:
+        bus = os.path.join(settings.busOriginalDir, name)
+        img=cv2.imread(bus)
+        img_flip =cv2.flip(img,1,settings.path2background + '/mirrored/' +name.replace('.JPG','_mirror.jpg'))
+        for i,rect in enumerate(locs[name]):
+            temp=img[rect[1]:rect[1]+rect[3],rect[0]:rect[0]+rect[2],:]
+            # cv2.imwrite(settings.path2background + '/mirrored/' +name.replace('.JPG','_' + str(i) + '.jpg'),temp)
+            f=open(settings.path2background + '/mirrored'+'/bus_color.txt', "a+")
+            f.write(name.replace('.JPG','_' + str(i) + '.jpg:') +str(rect[4])+ '\n')
 
 
 
@@ -61,5 +80,5 @@ def crop_background(settings,params):
 
 
 settings,params=settings_params.load()
-create_bus_rect_img(settings)
+mirror_images(settings,params)
 
