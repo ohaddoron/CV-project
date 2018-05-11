@@ -30,7 +30,7 @@ net = cv2.dnn.readNetFromCaffe('MobileNetSSD_deploy.prototxt', 'MobileNetSSD_dep
 # by resizing to a fixed 300x300 pixels and then normalizing it
 # (note: normalization is done via the authors of the MobileNet SSD
 # implementation)
-image = cv2.imread('DSCF1068.JPG')
+image = cv2.imread('./busesTrain/DSCF1142.JPG')
 (h, w) = image.shape[:2]
 blob = cv2.dnn.blobFromImage(cv2.resize(image, (300, 300)), 0.007843,
 	(300, 300), 127.5)
@@ -51,7 +51,7 @@ for i in np.arange(0, detections.shape[2]):
  
 	# filter out weak detections by ensuring the `confidence` is
 	# greater than the minimum confidence
-	if confidence > 0.8:
+	if confidence > 0.4:
 		# extract the index of the class label from the `detections`,
 		# then compute the (x, y)-coordinates of the bounding box for
 		# the object
