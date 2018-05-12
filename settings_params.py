@@ -22,8 +22,8 @@ class params:
         self.seed = 1
         self.num_training_images = 1000
         self.max_objects = 5
-        self.image_width=2736
-        self.image_height=3648
+        self.image_height=2736
+        self.image_width=3648
 
     
 def load():
