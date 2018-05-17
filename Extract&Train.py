@@ -4,7 +4,8 @@ Created on Tue May 15 14:20:57 2018
 
 @author: ohaddoron
 """
-
+from keras.preprocessing.image import ImageDataGenerator,load_img,img_to_array
+from skimage import color as col
 import os
 import shutil
 import cv2
@@ -12,7 +13,7 @@ import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense, Activation,Dropout,Conv2D,Flatten,MaxPooling2D
 from sklearn.model_selection import train_test_split
-from progressbar import ProgressBar
+# from progressbar import ProgressBar
 
 path = r'C:\Users\ohaddoron\Documents\CV Project\busesRect'
 annotations = path + '/bus_color.txt'
@@ -36,7 +37,7 @@ def load(path):
             tmp = []
             img = cv2.imread(path + '/' + label + '/' + file)
             color = ('b','g','r')
-            for i,col in enumerate(color):
+            for i,c in enumerate(color):
                 histr = cv2.calcHist([img],[i],None,[256],[0,256])
                 tmp.append(histr)
                 #img = cv2.resize(img,(200,200))
@@ -69,7 +70,7 @@ def genImages(path):
             for batch in datagen.flow(x, batch_size=1,
                                       save_to_dir=path + '/' + label, save_prefix=label, save_format='jpeg'):
                 i += 1
-                if i > 20:
+                if i > 30:
                     break  # otherwise the generator would loop indefinitely 
 
 '''
@@ -103,14 +104,33 @@ for i in pbar(range(10)):
     print('\n' + str(scores[-1]))
         
 '''
+def rgb2lab(img):
+    return col.rgb2lab(img)
+    #return img
+    
+
 train_datagen = ImageDataGenerator(
+        # preprocessing_function=rgb2lab,
         rescale=1./255,
         shear_range=0.2,
         zoom_range=0.2,
         horizontal_flip=True)
 
 train_generator = train_datagen.flow_from_directory(
-        r'C:\Users\ohaddoron\Documents\CV Project\busesRect',
+        './busesRect - original/train',
+        target_size=(150, 150),
+        batch_size=32,
+        class_mode='categorical')
+
+test_datagen = ImageDataGenerator(
+        # preprocessing_function=rgb2lab,
+        rescale=1./255,
+        shear_range=0.2,
+        zoom_range=0.2,
+        horizontal_flip=True)
+
+test_generator = test_datagen.flow_from_directory(
+        './busesRect - original/test',
         target_size=(150, 150),
         batch_size=32,
         class_mode='categorical')
