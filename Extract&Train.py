@@ -13,9 +13,11 @@ import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense, Activation,Dropout,Conv2D,Flatten,MaxPooling2D
 from sklearn.model_selection import train_test_split
-# from progressbar import ProgressBar
+from progressbar import ProgressBar
+from keras.models import load_model
 
-path = r'C:\Users\ohaddoron\Documents\CV Project\busesRect'
+
+path = './buses_sorted'
 annotations = path + '/bus_color.txt'
 
 def move_files(path,annotations):
@@ -117,9 +119,9 @@ train_datagen = ImageDataGenerator(
         horizontal_flip=True)
 
 train_generator = train_datagen.flow_from_directory(
-        './busesRect - original/train',
+        './busesRect - Sorted',
         target_size=(150, 150),
-        batch_size=32,
+        batch_size=15,
         class_mode='categorical')
 
 test_datagen = ImageDataGenerator(
@@ -130,9 +132,9 @@ test_datagen = ImageDataGenerator(
         horizontal_flip=True)
 
 test_generator = test_datagen.flow_from_directory(
-        './busesRect - original/test',
+        './busesRect - original',
         target_size=(150, 150),
-        batch_size=32,
+        batch_size=1,
         class_mode='categorical')
 
 model = Sequential()
@@ -141,15 +143,20 @@ model = Sequential()
 model.add(Conv2D(32, (3, 3), activation='relu', input_shape=(150, 150, 3)))
 model.add(Conv2D(32, (3, 3), activation='relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Dropout(0.25))
+model.add(Dropout(0.5))
 
-model.add(Conv2D(64, (3, 3), activation='relu'))
-model.add(Conv2D(64, (3, 3), activation='relu'))
+model.add(Conv2D(32, (3, 3), activation='relu'))
+model.add(Conv2D(32, (3, 3), activation='relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Dropout(0.25))
+model.add(Dropout(0.5))
+
+model.add(Conv2D(32, (3, 3), activation='relu'))
+model.add(Conv2D(32, (3, 3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Dropout(0.5))
 
 model.add(Flatten())
-model.add(Dense(256, activation='relu'))
+model.add(Dense(128, activation='relu'))
 model.add(Dropout(0.5))
 model.add(Dense(6, activation='softmax'))
 
@@ -157,4 +164,8 @@ model.add(Dense(6, activation='softmax'))
 model.compile(loss='categorical_crossentropy', optimizer='adam',metrics=['accuracy'])
 
 model.fit_generator(train_generator, epochs=10)
+
+os.mkdir('./models')
+model.save('./models/RGB2.h5')
 #score = model.evaluate(x_test, y_test, batch_size=32)
+
