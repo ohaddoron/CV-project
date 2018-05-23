@@ -106,13 +106,17 @@ for i in pbar(range(10)):
     print('\n' + str(scores[-1]))
         
 '''
-def rgb2lab(img):
-    return col.rgb2lab(img)
+def convert_img(img):
+    img = (255*img).astype(int)
+    hsv_img = col.rgb2hsv(img)
+    hsv_img += np.min(hsv_img)
+    hsv_img /= np.max(hsv_img) * 255
+    return hsv_img
     #return img
     
 
 train_datagen = ImageDataGenerator(
-        # preprocessing_function=rgb2lab,
+        preprocessing_function=convert_img,
         rescale=1./255,
         shear_range=0.2,
         zoom_range=0.2,
@@ -125,7 +129,7 @@ train_generator = train_datagen.flow_from_directory(
         class_mode='categorical')
 
 test_datagen = ImageDataGenerator(
-        # preprocessing_function=rgb2lab,
+        preprocessing_function=convert_img,
         rescale=1./255,
         shear_range=0.2,
         zoom_range=0.2,
@@ -165,7 +169,7 @@ model.compile(loss='categorical_crossentropy', optimizer='adam',metrics=['accura
 
 model.fit_generator(train_generator, epochs=10)
 
-os.mkdir('./models')
-model.save('./models/RGB2.h5')
+# os.mkdir('./models')
+model.save('./models/HSV.h5')
 #score = model.evaluate(x_test, y_test, batch_size=32)
 
