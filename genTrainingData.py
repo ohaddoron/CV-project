@@ -216,7 +216,8 @@ def augment(key,locs):
             y_min = int(b.y1)
             x_max = int(b.x2)
             y_max = int(b.y2)
-            label = hash_map(int(b.label))
+            # label = hash_map(int(b.label))
+            label = b.label
             bb.append([key.replace('.JPG','_'+str(k)+'.jpg'),x_min,x_max,y_min,y_max,label])
             '''
             rect = patches.Rectangle((x,y),w,h,
@@ -239,7 +240,7 @@ def hash_map(num):
     if num == 1:
         return 'green'
     if num == 2:
-        return 'yellow
+        return 'yellow'
     if num == 3:
         return 'white'
     if num == 4:
