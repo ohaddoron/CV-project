@@ -194,7 +194,7 @@ def iterate_database_and_generate():
 def augment(key,locs):
     image = io.imread('./busesTrain/' + key)
 
-    for k in range(2):
+    for k in range(150):
         bb = []
         seq = getSeq()
         seq_det = seq.to_deterministic()
@@ -239,7 +239,7 @@ def hash_map(num):
     if num == 1:
         return 'green'
     if num == 2:
-        return 'yello'
+        return 'yellow
     if num == 3:
         return 'white'
     if num == 4:
@@ -261,5 +261,3 @@ with open('./busesTrain/annotationsTrain.txt', 'r') as annFileGT:
         for loc in line.split(':')[1].split('],'):
             loc = [int(i) for i in loc.replace('[', '').replace(']', '').split(',')]
             locs[imName].append(loc)
-
-augment('DSCF1077.JPG',locs['DSCF1077.JPG'])
