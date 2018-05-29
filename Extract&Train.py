@@ -15,9 +15,9 @@ from keras.layers import Dense, Activation,Dropout,Conv2D,Flatten,MaxPooling2D
 from sklearn.model_selection import train_test_split
 from progressbar import ProgressBar
 from keras.models import load_model
+from skimage import io
 
-
-path = './buses_sorted'
+path = './'
 annotations = path + '/bus_color.txt'
 
 def move_files(path,annotations):
@@ -37,15 +37,16 @@ def load(path):
         files = [file for file in os.listdir(path + '/' + label) if file.endswith('.jpeg')]
         for file in files:
             tmp = []
-            img = cv2.imread(path + '/' + label + '/' + file)
-            color = ('b','g','r')
+            img = io.imread(path + '/' + label + '/' + file)
+            color = ('r','g','b')
             for i,c in enumerate(color):
-                histr = cv2.calcHist([img],[i],None,[256],[0,256])
-                tmp.append(histr)
+                histr = np.histogram(img[:,:,i],bins=256)[0]
+                tmp = np.hstack((tmp,histr))
                 #img = cv2.resize(img,(200,200))
             #tmp.append(np.transpose(np.vstack(img.ravel())))
             X.append(np.transpose(np.vstack(tmp)))            
             y.append(int(label)-1)
+    y -= np.min(y)
     return np.vstack(X),y   
 
 def genImages(path):
@@ -75,37 +76,39 @@ def genImages(path):
                 if i > 30:
                     break  # otherwise the generator would loop indefinitely 
 
-'''
-pbar = ProgressBar()
-scores = []
-X,y = load(path)
-for i in pbar(range(10)):
-    
-    X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.1)
-    
-    model = Sequential([
-        Dense(1000, input_shape=(X_train.shape[1],)),
-        Activation('tanh'),
-        Dropout(0.0),
-       # Dense(50,activation='tanh'),
-        Dense(len(np.unique(y_train))),
-        Activation('softmax'),
-    ])
+def trainMLP():
+    pbar = ProgressBar()
+    scores = []
+    path = './busesRectSorted2'
+    X,y = load(path)
+    for i in pbar(range(1)):
+        X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.2)
         
-    model.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy',
-              metrics=['accuracy'])
-    
-    model.fit(X_train, y_train, epochs=15, batch_size=100,shuffle=True,verbose=1)
-    out = model.predict_classes(X_test)
-    score = 0
-    for o,yi in zip(out,y_test):
-        if o == yi:
-            score+=1
-    scores.append(score/len(out)*100)
-    print('\n' + str(scores[-1]))
+        model = Sequential([
+            Dense(500, input_shape=(X_train.shape[1],)),
+            Activation('tanh'),
+            # Dropout(0.5),
+            # Dense(50,activation='tanh'),
+            Dense(len(np.unique(y_train))),
+            Activation('softmax'),
+        ])
+            
+        model.compile(optimizer='adam',
+                  loss='sparse_categorical_crossentropy',
+                  metrics=['accuracy'])
         
-'''
+        model.fit(X_train, y_train, epochs=15, batch_size=100,shuffle=True,verbose=1)
+        out = model.predict_classes(X_test)
+        score = 0.0
+        for o,yi in zip(out,y_test):
+            if o == yi:
+                score+=1
+        scores.append(score/len(out)*100)
+        print('\n' + str(scores[-1]))
+    model.save('./models/RGB2.h5')
+    return model
+        
+
 def convert_img(img):
     img = (255*img).astype(int)
     hsv_img = col.rgb2hsv(img)
@@ -115,61 +118,90 @@ def convert_img(img):
     #return img
     
 
-train_datagen = ImageDataGenerator(
-        preprocessing_function=convert_img,
+
+
+def trainCNN():
+    train_datagen = ImageDataGenerator(
+        # preprocessing_function=convert_img,
         rescale=1./255,
         shear_range=0.2,
         zoom_range=0.2,
-        horizontal_flip=True)
+        horizontal_flip=True
+        )
 
-train_generator = train_datagen.flow_from_directory(
-        './busesRect - Sorted',
+    train_generator = train_datagen.flow_from_directory(
+        './busesRectSorted2',
+#	'./busesRect - Sorted',
         target_size=(150, 150),
         batch_size=15,
         class_mode='categorical')
 
-test_datagen = ImageDataGenerator(
-        preprocessing_function=convert_img,
+    
+    model = Sequential()
+    # input: 100x100 images with 3 channels -> (100, 100, 3) tensors.
+    # this applies 32 convolution filters of size 3x3 each.
+    model.add(Conv2D(32, (3, 3), activation='relu', input_shape=(150, 150, 3)))
+    model.add(Conv2D(32, (3, 3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.5))
+    
+    model.add(Conv2D(32, (3, 3), activation='relu'))
+    model.add(Conv2D(32, (3, 3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.5))
+    
+    model.add(Conv2D(32, (3, 3), activation='relu'))
+    model.add(Conv2D(32, (3, 3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.5))
+    
+    model.add(Flatten())
+    model.add(Dense(128, activation='relu'))
+    model.add(Dropout(0.5))
+    # model.add(Dense(6, activation='softmax'))
+    model.add(Dense(2, activation='softmax'))
+    
+    model.compile(loss='categorical_crossentropy', optimizer='adam',metrics=['accuracy'])
+    
+    model.fit_generator(train_generator, epochs=10)
+    
+    # os.mkdir('./models')
+    model.save('./models/RGB2.h5')
+    #score = model.evaluate(x_test, y_test, batch_size=32)
+
+def evalCNNModel(model):
+    test_datagen = ImageDataGenerator(
+        # preprocessing_function=convert_img,
         rescale=1./255,
         shear_range=0.2,
         zoom_range=0.2,
         horizontal_flip=True)
 
-test_generator = test_datagen.flow_from_directory(
-        './busesRect - original',
+
+    test_generator = test_datagen.flow_from_directory(
+        './busesRectOriginal2',
+        #	'./busesRect - original',
         target_size=(150, 150),
         batch_size=1,
         class_mode='categorical')
+    
+    score = 0.0
+    err_label = []
+    count =0.0
+    n_samples=600
+    for i in range(n_samples):
+        X,y = test_generator.next()
+        if np.argmax(y) in [2,3]:
+            count += 1
+        if model.predict_classes(X)[0] == np.argmax(y):
+            score+=1
+        else:
+            err_label.append(np.argmax(y))
+    
+    print '\nScore: ' + str(score/n_samples)
 
-model = Sequential()
-# input: 100x100 images with 3 channels -> (100, 100, 3) tensors.
-# this applies 32 convolution filters of size 3x3 each.
-model.add(Conv2D(32, (3, 3), activation='relu', input_shape=(150, 150, 3)))
-model.add(Conv2D(32, (3, 3), activation='relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Dropout(0.5))
-
-model.add(Conv2D(32, (3, 3), activation='relu'))
-model.add(Conv2D(32, (3, 3), activation='relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Dropout(0.5))
-
-model.add(Conv2D(32, (3, 3), activation='relu'))
-model.add(Conv2D(32, (3, 3), activation='relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Dropout(0.5))
-
-model.add(Flatten())
-model.add(Dense(128, activation='relu'))
-model.add(Dropout(0.5))
-model.add(Dense(6, activation='softmax'))
-
-
-model.compile(loss='categorical_crossentropy', optimizer='adam',metrics=['accuracy'])
-
-model.fit_generator(train_generator, epochs=10)
-
-# os.mkdir('./models')
-model.save('./models/HSV.h5')
-#score = model.evaluate(x_test, y_test, batch_size=32)
-
+'''
+model = trainCNN()
+evalCNNModel(model)
+'''
+model = trainMLP()

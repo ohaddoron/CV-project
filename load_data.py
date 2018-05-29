@@ -87,7 +87,7 @@ def crop_background(settings,params):
             cv2.imwrite(settings.path2background + '/cropped/'+str(i)+'_' + background_image,image_res)
 
 
-settings,params=settings_params.load()
+# settings,params=settings_params.load()
 # mirror_images(settings, params)
-create_bus_rect_img(settings)
+# create_bus_rect_img(settings)
 
